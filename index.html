@@ -2,31 +2,96 @@
 <html lang="de">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="robots" content="noindex,nofollow">
-  <meta http-equiv="refresh" content="0;url=https://team-lernapp-york-test.web.app/">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Cache-Control" content="no-store">
   <link rel="canonical" href="https://team-lernapp-york-test.web.app/">
-  <title>SalonVorsprung wird geöffnet</title>
+  <title>SalonVorsprung – Lernstand wird übernommen</title>
   <style>
     :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
     * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; color: #fff7df; background: radial-gradient(circle at 50% 20%, #24365f 0, #0c1428 38%, #060912 100%); }
-    main { width: min(520px, 100%); text-align: center; }
-    .mark { width: 88px; height: 88px; margin: 0 auto 22px; display: grid; place-items: center; border: 1px solid #e9bd58; border-radius: 28px; color: #f6d681; font: 700 32px/1 Georgia, serif; box-shadow: 0 18px 50px #0008, inset 0 0 30px #e9bd5815; }
-    .kicker { margin: 0 0 10px; color: #e9bd58; font-size: 13px; font-weight: 800; letter-spacing: .2em; }
-    h1 { margin: 0 0 12px; font-size: clamp(30px, 7vw, 48px); line-height: 1.05; }
-    p { margin: 0 auto 28px; max-width: 420px; color: #c8c5bd; font-size: 17px; line-height: 1.55; }
-    a { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; padding: 0 22px; border-radius: 14px; color: #15100a; background: linear-gradient(135deg, #f8d77e, #d99b2b); font-weight: 800; text-decoration: none; }
+    body { min-height: 100svh; margin: 0; display: grid; place-items: center; padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom)); color: #fff8e8; background: radial-gradient(circle at 50% 25%, #202944 0, #0a1020 48%, #070a12 100%); }
+    main { width: min(460px, 100%); text-align: center; }
+    .mark { width: 82px; height: 82px; margin: 0 auto 24px; display: grid; place-items: center; border: 1px solid rgba(246, 195, 91, .52); border-radius: 26px; color: #f6c35b; background: rgba(10, 16, 32, .78); box-shadow: 0 18px 60px rgba(0, 0, 0, .4); font-size: 34px; font-weight: 900; }
+    h1 { margin: 0; font-size: clamp(26px, 7vw, 38px); line-height: 1.05; }
+    p { margin: 14px auto 0; max-width: 36ch; color: #c9c4b8; line-height: 1.55; }
+    a { display: inline-flex; min-height: 48px; margin-top: 26px; align-items: center; justify-content: center; padding: 0 22px; border-radius: 14px; color: #15100a; background: linear-gradient(135deg, #f8d77e, #d99b2b); font-weight: 800; text-decoration: none; }
+    .track { height: 5px; margin: 28px auto 0; overflow: hidden; border-radius: 99px; background: rgba(255, 255, 255, .1); }
+    .track::after { content: ""; display: block; width: 42%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #c98a20, #ffe185); animation: move 1.15s ease-in-out infinite alternate; }
+    @keyframes move { from { transform: translateX(-15%); } to { transform: translateX(155%); } }
   </style>
 </head>
 <body>
   <main>
     <div class="mark" aria-hidden="true">SV</div>
-    <p class="kicker">SALONVORSPRUNG</p>
-    <h1>Die App ist umgezogen.</h1>
-    <p>Du wirst automatisch zur aktuellen, sicheren Web-App weitergeleitet.</p>
+    <h1>Dein Lernstand zieht um</h1>
+    <p>Deine bisherigen Fortschritte werden sicher zur neuen SalonVorsprung-Adresse übertragen.</p>
+    <div class="track" aria-hidden="true"></div>
     <a href="https://team-lernapp-york-test.web.app/">SalonVorsprung öffnen</a>
   </main>
-  <script>window.location.replace("https://team-lernapp-york-test.web.app/");</script>
+  <script>
+    (() => {
+      const TARGET_ORIGIN = "https://team-lernapp-york-test.web.app";
+      const EXACT_KEYS = new Set([
+        "kev_lesson_results", "kev_streak_bonus_lessons", "kev_lesson_attempts",
+        "kev_perfect_wheel_lessons", "azubiAppLernlogikStatus",
+        "friseurTrainerSectionProgress_v1", "friseurTrainerLevelTransitionProgress_v1",
+        "friseurTrainerXp", "friseurTrainerStreak", "friseurTrainerBestStreak",
+        "friseurTrainerLastDate", "friseurTrainerStreakDates", "kev_employee_activity_v1",
+        "teamLernappPremiumRewards_v1", "kev_question_history_v1", "kev_daily_mission_state_v1",
+        "kev_fachwort_pending", "kev_fachwort_lexikon", "lernapp_last_level",
+        "friseurTrainerIntroGesehen_v1"
+      ]);
+      const PREFIXES = ["friseurTrainerMaxLesson_", "wm_seen_", "lernapp_return_training_v1:"];
+      const isProgressKey = (key) => EXACT_KEYS.has(key) || PREFIXES.some((prefix) => key.startsWith(prefix));
+
+      function encodeBase64Url(value) {
+        const bytes = new TextEncoder().encode(value);
+        let binary = "";
+        for (let index = 0; index < bytes.length; index += 0x8000) {
+          binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
+        }
+        return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+      }
+
+      const values = {};
+      try {
+        for (let index = 0; index < localStorage.length; index += 1) {
+          const key = localStorage.key(index);
+          if (!key || !isProgressKey(key)) continue;
+          const value = localStorage.getItem(key);
+          if (value !== null) values[key] = value;
+        }
+      } catch (_) {}
+
+      const ownerId = (() => {
+        try {
+          return localStorage.getItem("salonvorsprung_progress_owner_v1")
+            || localStorage.getItem("friseurTrainerStreakOwner")
+            || "";
+        } catch (_) { return ""; }
+      })();
+      const payload = JSON.stringify({
+        schemaVersion: 1,
+        ownerId,
+        sourceOrigin: location.origin,
+        capturedAt: new Date().toISOString(),
+        values
+      });
+
+      try { window.name = `salonvorsprung-progress-transfer:${payload}`; } catch (_) {}
+      let hash = "#legacyProgress=window";
+      try {
+        const encoded = encodeBase64Url(payload);
+        if (encoded.length <= 120000) hash = `#legacyProgress=${encoded}`;
+      } catch (_) {}
+
+      const target = new URL(TARGET_ORIGIN);
+      target.search = location.search;
+      target.hash = hash;
+      setTimeout(() => location.replace(target.href), 450);
+    })();
+  </script>
 </body>
 </html>
