@@ -7,28 +7,44 @@
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="Cache-Control" content="no-store">
   <link rel="canonical" href="https://team-lernapp-york-test.web.app/">
-  <title>SalonVorsprung – Lernstand wird übernommen</title>
+  <title>SalonVorsprung – Lernstand wiederherstellen</title>
   <style>
     :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
     * { box-sizing: border-box; }
-    body { min-height: 100svh; margin: 0; display: grid; place-items: center; padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom)); color: #fff8e8; background: radial-gradient(circle at 50% 25%, #202944 0, #0a1020 48%, #070a12 100%); }
-    main { width: min(460px, 100%); text-align: center; }
-    .mark { width: 82px; height: 82px; margin: 0 auto 24px; display: grid; place-items: center; border: 1px solid rgba(246, 195, 91, .52); border-radius: 26px; color: #f6c35b; background: rgba(10, 16, 32, .78); box-shadow: 0 18px 60px rgba(0, 0, 0, .4); font-size: 34px; font-weight: 900; }
-    h1 { margin: 0; font-size: clamp(26px, 7vw, 38px); line-height: 1.05; }
-    p { margin: 14px auto 0; max-width: 36ch; color: #c9c4b8; line-height: 1.55; }
-    a { display: inline-flex; min-height: 48px; margin-top: 26px; align-items: center; justify-content: center; padding: 0 22px; border-radius: 14px; color: #15100a; background: linear-gradient(135deg, #f8d77e, #d99b2b); font-weight: 800; text-decoration: none; }
-    .track { height: 5px; margin: 28px auto 0; overflow: hidden; border-radius: 99px; background: rgba(255, 255, 255, .1); }
-    .track::after { content: ""; display: block; width: 42%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #c98a20, #ffe185); animation: move 1.15s ease-in-out infinite alternate; }
-    @keyframes move { from { transform: translateX(-15%); } to { transform: translateX(155%); } }
+    body { min-height: 100svh; margin: 0; display: grid; place-items: center; padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom)); color: #fff8e8; background: radial-gradient(circle at 50% 20%, #202944 0, #0a1020 48%, #070a12 100%); }
+    main { width: min(480px, 100%); padding: 28px 24px; border: 1px solid rgba(246,195,91,.25); border-radius: 28px; background: rgba(7,10,18,.78); box-shadow: 0 24px 80px rgba(0,0,0,.45); }
+    .mark { width: 72px; height: 72px; margin-bottom: 24px; display: grid; place-items: center; border: 1px solid rgba(246,195,91,.52); border-radius: 23px; color: #f6c35b; font-size: 29px; font-weight: 900; }
+    .kicker { margin: 0 0 8px; color: #f6c35b; font-size: 12px; font-weight: 850; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(28px,7vw,42px); line-height: 1.05; }
+    .intro { margin: 14px 0 0; color: #c9c4b8; line-height: 1.55; }
+    .result { margin: 26px 0 0; padding: 20px; border-radius: 20px; background: #111a30; }
+    .result strong { display: block; font-size: 22px; }
+    .result span { display: block; margin-top: 7px; color: #bfc4d1; line-height: 1.45; }
+    .result.is-found { border: 1px solid rgba(111,210,137,.45); }
+    .result.is-empty { border: 1px solid rgba(246,195,91,.3); }
+    .actions { display: grid; gap: 10px; margin-top: 22px; }
+    button, a { min-height: 54px; display: flex; align-items: center; justify-content: center; padding: 0 18px; border: 0; border-radius: 16px; font: inherit; font-weight: 850; text-decoration: none; cursor: pointer; }
+    button { color: #171008; background: linear-gradient(135deg,#ffe28c,#dda02f); }
+    button[hidden] { display: none; }
+    a { color: #ede8dc; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); }
+    .note { margin: 17px 0 0; color: #8d93a2; font-size: 13px; line-height: 1.5; }
   </style>
 </head>
 <body>
   <main>
     <div class="mark" aria-hidden="true">SV</div>
-    <h1>Dein Lernstand zieht um</h1>
-    <p>Deine bisherigen Fortschritte werden sicher zur neuen SalonVorsprung-Adresse übertragen.</p>
-    <div class="track" aria-hidden="true"></div>
-    <a href="https://team-lernapp-york-test.web.app/">SalonVorsprung öffnen</a>
+    <p class="kicker">Sichere Wiederherstellung</p>
+    <h1>Alter Lernstand</h1>
+    <p class="intro">Diese Seite prüft ausschließlich den Lernstand, der noch unter der alten App-Adresse auf diesem Gerät gespeichert ist.</p>
+    <section class="result" id="result" aria-live="polite">
+      <strong id="result-title">Lernstand wird geprüft …</strong>
+      <span id="result-detail">Einen Moment bitte.</span>
+    </section>
+    <div class="actions">
+      <button type="button" id="restore" hidden>Gefundenen Lernstand übernehmen</button>
+      <a id="continue" href="https://team-lernapp-york-test.web.app/">Ohne Übernahme zur neuen App</a>
+    </div>
+    <p class="note">Kontodaten, Passwörter und Anmeldesitzungen werden nicht übertragen.</p>
   </main>
   <script>
     (() => {
@@ -45,14 +61,13 @@
       ]);
       const PREFIXES = ["friseurTrainerMaxLesson_", "wm_seen_", "lernapp_return_training_v1:"];
       const isProgressKey = (key) => EXACT_KEYS.has(key) || PREFIXES.some((prefix) => key.startsWith(prefix));
+      const parseJson = (raw, fallback) => { try { return JSON.parse(raw); } catch (_) { return fallback; } };
 
       function encodeBase64Url(value) {
         const bytes = new TextEncoder().encode(value);
         let binary = "";
-        for (let index = 0; index < bytes.length; index += 0x8000) {
-          binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
-        }
-        return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+        for (let index = 0; index < bytes.length; index += 0x8000) binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
+        return btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");
       }
 
       const values = {};
@@ -65,32 +80,43 @@
         }
       } catch (_) {}
 
-      const ownerId = (() => {
+      const lessonResults = parseJson(values.kev_lesson_results || "{}", {});
+      const lessonCount = lessonResults && typeof lessonResults === "object" ? Object.keys(lessonResults).length : 0;
+      const learningStatus = parseJson(values.azubiAppLernlogikStatus || "{}", {});
+      const completedCount = learningStatus?.erledigteSteps && typeof learningStatus.erledigteSteps === "object"
+        ? Object.keys(learningStatus.erledigteSteps).length : 0;
+      const unlockCount = Object.keys(values).filter((key) => key.startsWith("friseurTrainerMaxLesson_") && Number(values[key]) > 0).length;
+      const xp = Math.max(0, Number(values.friseurTrainerXp) || 0);
+      const hasProgress = lessonCount > 0 || completedCount > 0 || unlockCount > 0 || xp > 0;
+
+      const result = document.getElementById("result");
+      const title = document.getElementById("result-title");
+      const detail = document.getElementById("result-detail");
+      const restore = document.getElementById("restore");
+      result.classList.add(hasProgress ? "is-found" : "is-empty");
+      title.textContent = hasProgress ? "Lernstand gefunden" : "Auf dieser Seite ist kein alter Lernstand gespeichert";
+      detail.textContent = hasProgress
+        ? `${Math.max(lessonCount, completedCount)} bearbeitete Lektionen · ${unlockCount} freigeschaltete Lernpfade · ${xp} XP`
+        : "Bitte öffne diese Adresse direkt über das alte Homescreen-App-Symbol. Safari selbst kann einen getrennten Speicher verwenden.";
+      restore.hidden = !hasProgress;
+
+      restore.addEventListener("click", () => {
+        restore.disabled = true;
+        restore.textContent = "Lernstand wird übertragen …";
+        let ownerId = "";
+        try { ownerId = localStorage.getItem("salonvorsprung_progress_owner_v1") || localStorage.getItem("friseurTrainerStreakOwner") || ""; } catch (_) {}
+        const payload = JSON.stringify({ schemaVersion: 1, ownerId, sourceOrigin: location.origin, capturedAt: new Date().toISOString(), values });
+        try { window.name = `salonvorsprung-progress-transfer:${payload}`; } catch (_) {}
+        let hash = "#legacyProgress=window";
         try {
-          return localStorage.getItem("salonvorsprung_progress_owner_v1")
-            || localStorage.getItem("friseurTrainerStreakOwner")
-            || "";
-        } catch (_) { return ""; }
-      })();
-      const payload = JSON.stringify({
-        schemaVersion: 1,
-        ownerId,
-        sourceOrigin: location.origin,
-        capturedAt: new Date().toISOString(),
-        values
+          const encoded = encodeBase64Url(payload);
+          if (encoded.length <= 120000) hash = `#legacyProgress=${encoded}`;
+        } catch (_) {}
+        const target = new URL(TARGET_ORIGIN);
+        target.searchParams.set("progress_recovery", "1");
+        target.hash = hash;
+        location.assign(target.href);
       });
-
-      try { window.name = `salonvorsprung-progress-transfer:${payload}`; } catch (_) {}
-      let hash = "#legacyProgress=window";
-      try {
-        const encoded = encodeBase64Url(payload);
-        if (encoded.length <= 120000) hash = `#legacyProgress=${encoded}`;
-      } catch (_) {}
-
-      const target = new URL(TARGET_ORIGIN);
-      target.search = location.search;
-      target.hash = hash;
-      setTimeout(() => location.replace(target.href), 450);
     })();
   </script>
 </body>
