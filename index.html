@@ -103,9 +103,11 @@
       restore.addEventListener("click", () => {
         restore.disabled = true;
         restore.textContent = "Lernstand wird übertragen …";
-        let ownerId = "";
-        try { ownerId = localStorage.getItem("salonvorsprung_progress_owner_v1") || localStorage.getItem("friseurTrainerStreakOwner") || ""; } catch (_) {}
-        const payload = JSON.stringify({ schemaVersion: 1, ownerId, sourceOrigin: location.origin, capturedAt: new Date().toISOString(), values });
+        // Die alte lokale Kontokennung darf nicht Ã¼bernommen werden: Sie stammt
+        // aus einer Zeit vor dem Firebase-Inhaberzugang und kann daher nicht mit
+        // der heutigen UID Ã¼bereinstimmen. Die neue App ordnet den ausdrÃ¼cklich
+        // bestÃ¤tigten Fortschritt dem dort bereits angemeldeten Konto zu.
+        const payload = JSON.stringify({ schemaVersion: 1, ownerId: "", sourceOrigin: location.origin, capturedAt: new Date().toISOString(), values });
         try { window.name = `salonvorsprung-progress-transfer:${payload}`; } catch (_) {}
         let hash = "#legacyProgress=window";
         try {
@@ -113,7 +115,7 @@
           if (encoded.length <= 120000) hash = `#legacyProgress=${encoded}`;
         } catch (_) {}
         const target = new URL(TARGET_ORIGIN);
-        target.searchParams.set("progress_recovery", "1");
+        target.searchParams.set("progress_recovery", "2");
         target.hash = hash;
         location.assign(target.href);
       });
