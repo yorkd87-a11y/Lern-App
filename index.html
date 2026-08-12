@@ -23,6 +23,11 @@
     .result.is-found { border: 1px solid rgba(111,210,137,.45); }
     .result.is-empty { border: 1px solid rgba(246,195,91,.3); }
     .actions { display: grid; gap: 10px; margin-top: 22px; }
+    .transfer-progress { display: grid; gap: 10px; margin-top: 22px; }
+    .transfer-progress[hidden] { display: none; }
+    .transfer-progress-track { height: 9px; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,.1); box-shadow: inset 0 1px 3px rgba(0,0,0,.4); }
+    .transfer-progress-bar { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#d99d31,#ffe28c); box-shadow: 0 0 18px rgba(246,195,91,.35); transition: width 420ms cubic-bezier(.2,.8,.2,1); }
+    .transfer-progress-copy { margin: 0; color: #c9c4b8; font-size: 14px; line-height: 1.45; }
     button, a { min-height: 54px; display: flex; align-items: center; justify-content: center; padding: 0 18px; border: 0; border-radius: 16px; font: inherit; font-weight: 850; text-decoration: none; cursor: pointer; }
     button { color: #171008; background: linear-gradient(135deg,#ffe28c,#dda02f); }
     button[hidden] { display: none; }
@@ -39,6 +44,12 @@
     <section class="result" id="result" aria-live="polite">
       <strong id="result-title">Lernstand wird geprüft …</strong>
       <span id="result-detail">Einen Moment bitte.</span>
+    </section>
+    <section class="transfer-progress" id="transfer-progress" aria-live="polite" hidden>
+      <div class="transfer-progress-track" role="progressbar" aria-label="Übertragung des Lernstands" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="transfer-progress-bar" id="transfer-progress-bar"></div>
+      </div>
+      <p class="transfer-progress-copy" id="transfer-progress-copy">Lernstand wird vorbereitet.</p>
     </section>
     <div class="actions">
       <button type="button" id="restore" hidden>Gefundenen Lernstand übernehmen</button>
@@ -63,13 +74,6 @@
       const isProgressKey = (key) => EXACT_KEYS.has(key) || PREFIXES.some((prefix) => key.startsWith(prefix));
       const parseJson = (raw, fallback) => { try { return JSON.parse(raw); } catch (_) { return fallback; } };
 
-      function encodeBase64Url(value) {
-        const bytes = new TextEncoder().encode(value);
-        let binary = "";
-        for (let index = 0; index < bytes.length; index += 0x8000) binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
-        return btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");
-      }
-
       const values = {};
       try {
         for (let index = 0; index < localStorage.length; index += 1) {
@@ -93,6 +97,16 @@
       const title = document.getElementById("result-title");
       const detail = document.getElementById("result-detail");
       const restore = document.getElementById("restore");
+      const transferProgress = document.getElementById("transfer-progress");
+      const transferProgressTrack = transferProgress?.querySelector("[role='progressbar']");
+      const transferProgressBar = document.getElementById("transfer-progress-bar");
+      const transferProgressCopy = document.getElementById("transfer-progress-copy");
+      const setTransferProgress = (percent, message) => {
+        const normalized = Math.max(0, Math.min(100, Number(percent) || 0));
+        if (transferProgressBar) transferProgressBar.style.width = `${normalized}%`;
+        transferProgressTrack?.setAttribute("aria-valuenow", String(normalized));
+        if (transferProgressCopy && message) transferProgressCopy.textContent = message;
+      };
       result.classList.add(hasProgress ? "is-found" : "is-empty");
       title.textContent = hasProgress ? "Lernstand gefunden" : "Auf dieser Seite ist kein alter Lernstand gespeichert";
       detail.textContent = hasProgress
@@ -102,22 +116,30 @@
 
       restore.addEventListener("click", () => {
         restore.disabled = true;
-        restore.textContent = "Lernstand wird übertragen …";
+        restore.textContent = "Übertragung gestartet";
+        transferProgress.hidden = false;
+        setTransferProgress(18, "31 Lektionen und deine XP werden sicher vorbereitet.");
         // Die alte lokale Kontokennung darf nicht Ã¼bernommen werden: Sie stammt
         // aus einer Zeit vor dem Firebase-Inhaberzugang und kann daher nicht mit
         // der heutigen UID Ã¼bereinstimmen. Die neue App ordnet den ausdrÃ¼cklich
         // bestÃ¤tigten Fortschritt dem dort bereits angemeldeten Konto zu.
         const payload = JSON.stringify({ schemaVersion: 1, ownerId: "", sourceOrigin: location.origin, capturedAt: new Date().toISOString(), values });
-        try { window.name = `salonvorsprung-progress-transfer:${payload}`; } catch (_) {}
-        let hash = "#legacyProgress=window";
         try {
-          const encoded = encodeBase64Url(payload);
-          if (encoded.length <= 120000) hash = `#legacyProgress=${encoded}`;
-        } catch (_) {}
-        const target = new URL(TARGET_ORIGIN);
-        target.searchParams.set("progress_recovery", "2");
-        target.hash = hash;
-        location.assign(target.href);
+          window.name = `salonvorsprung-progress-transfer:${payload}`;
+        } catch (_) {
+          restore.disabled = false;
+          restore.textContent = "Erneut versuchen";
+          setTransferProgress(0, "Die Übergabe konnte nicht vorbereitet werden. Bitte versuche es erneut.");
+          return;
+        }
+        window.requestAnimationFrame(() => setTransferProgress(42, "Lernstand vorbereitet. Die neue App übernimmt jetzt."));
+        window.setTimeout(() => {
+          const target = new URL(TARGET_ORIGIN);
+          target.searchParams.set("progress_recovery", "3");
+          target.hash = "legacyProgress=window";
+          setTransferProgress(55, "Wechsel zur neuen App …");
+          location.replace(target.href);
+        }, 650);
       });
     })();
   </script>
